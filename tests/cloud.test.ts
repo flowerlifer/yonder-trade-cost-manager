@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import type {SupabaseClient} from '@supabase/supabase-js';
+import {loadProjects,saveProject,deleteProject} from '../lib/cloud';
+import {demo} from '../lib/model';
+const client=(x:unknown)=>x as SupabaseClient;
+test('拒绝非管理员，且不查询财务数据',async()=>{await assert.rejects(()=>loadProjects(client({rpc:async()=>({data:false}),from:()=>{throw Error('不应查询');}})),/不是指定管理员/);});
+test('权限检查失败不伪装空项目',async()=>{await assert.rejects(()=>loadProjects(client({rpc:async()=>({error:{message:'network'}})})),/network/);});
+test('保存失败向调用方抛出',async()=>{await assert.rejects(()=>saveProject(client({rpc:async()=>({error:{message:'数据库不可用'}})}),demo()),/数据库不可用/);});
+test('十进制按字符串发送，不修改自定义比例',async()=>{const p=demo();p.mode='custom';p.investors[0].share='50.000001';await saveProject(client({rpc:async(name:string,args:{payload:unknown})=>{assert.equal(name,'save_project');assert.deepEqual(args.payload,p);return {error:null};}}),p);});
+test('零行删除不报告成功',async()=>{const mock={from:()=>({delete:()=>({eq:()=>({select:async()=>({data:[],error:null})})})})};await assert.rejects(()=>deleteProject(client(mock),'id'),/删除未生效/);});
