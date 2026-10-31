@@ -1,0 +1,3 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {chartParts,categoryName,demo,paidByCategory} from '../lib/model';
+test('图表比例与零金额',()=>{assert.deepEqual(chartParts(['1','3','0']).map(v=>v.toString()),['25','75','0']);assert(chartParts(['0','0']).every(v=>v.eq(0)));});
+test('旧分类改名不丢金额',()=>{assert.equal(categoryName('采购成本'),'采购费用');assert.equal(categoryName('进口费'),'进口清关费');const p=demo();p.payments=[{id:'1',name:'款项',category:'采购成本',amount:'1',status:'paid'},{id:'2',name:'款项',category:'进口费',amount:'2',status:'paid'}];assert.equal(paidByCategory(p)[0].toString(),'1');assert.equal(paidByCategory(p)[7].toString(),'2');});
