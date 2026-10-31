@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {demo,calculate} from '../lib/model';
+test('总成本唯一来源为预计预算，历史费用不影响，利润联动',()=>{const p=demo();p.estimated=['10','20','0','0','0','0','0','0'];p.costs[0].amount='100000';let c=calculate(p);assert.equal(c.cost.toString(),'30');assert.equal(c.profit.toString(),'831970');p.estimated[0]='40';c=calculate(p);assert.equal(c.cost.toString(),'60');assert.equal(c.breakeven?.times(26000).toFixed(2),'60.00');delete p.estimated;assert.equal(calculate(p).cost.toString(),'0');});
